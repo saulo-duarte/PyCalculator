@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon
 from variables import WINDOW_ICON_PATH
 from display import Display
+from info import Info
 
 if __name__ == '__main__':
     # Cria a aplicação
@@ -14,7 +15,6 @@ if __name__ == '__main__':
     window.adjustFixedSize()
     
     # Diplay
-
     display = Display()
     window.add_widget(display)
     
@@ -22,6 +22,10 @@ if __name__ == '__main__':
     icon = QIcon(str(WINDOW_ICON_PATH))
     window.setWindowIcon(icon)
     app.setWindowIcon(icon)
+
+    # Informações
+    info = Info('Hello World!')
+    window.add_widget(info)
 
     # Executa tudo
     window.adjustFixedSize()
