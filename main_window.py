@@ -14,10 +14,11 @@ class MainWindow(QMainWindow):
 
         # Título da janela
         self.setWindowTitle('Calculadora')
+        self.adjustFixedSize()
 
     def adjustFixedSize(self):
-        self.adjustSize()
         self.setFixedSize(self.width(), self.height())
+        self.adjustSize()
 
-    def add_widget(self, widget):
+    def addWidgetToVLayout(self, widget: QWidget):
         self.vLayout.addWidget(widget)

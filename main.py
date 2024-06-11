@@ -16,35 +16,22 @@ if __name__ == '__main__':
     window = MainWindow()
     window.adjustFixedSize()
 
+    icon = QIcon(str(WINDOW_ICON_PATH))
+    window.setWindowIcon(icon)
+    app.setWindowIcon(icon)
     
     # Diplay
     display = Display()
-    window.add_widget(display)
+    window.addWidgetToVLayout(display)
 
     # Grid
 
     buttonsGrid = ButtonsGrid()
     window.vLayout.addLayout(buttonsGrid)
-
-    button1 = Button('Click me 0!')
-    buttonsGrid.addWidget(button1, 0, 0)
-
-    button2 = Button('Click me 1!')
-    buttonsGrid.addWidget(button2, 0, 1)
-
-    # Botão
-
-    button = Button('Click me 2!')
-    window.add_widget(button)
     
-    # Define o ícone
-    icon = QIcon(str(WINDOW_ICON_PATH))
-    window.setWindowIcon(icon)
-    app.setWindowIcon(icon)
-
     # Informações
     info = Info('Hello World!')
-    window.add_widget(info)
+    window.addWidgetToVLayout(info)
 
     # Executa tudo
     window.adjustFixedSize()
