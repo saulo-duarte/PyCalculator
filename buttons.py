@@ -4,6 +4,7 @@ from PySide6.QtCore import Slot
 from variables import MEDIUM_FONT_SIZE
 from utils import is_number_or_dot, is_empty, isValidNumber
 from display import Display
+from math import pow
 
 class Button(QPushButton):
     def __init__(self, *args, **kwargs):
@@ -68,8 +69,12 @@ class ButtonsGrid(QGridLayout):
         if text == 'C':
             self._connectButtonClicked(button, self._clearDisplay)
 
-        if text in ['+', '-', '*', '/']:
+        if text in ['+', '-', '*', '/', '^']:
             self._connectButtonClicked(button, self._makeSlot(self._operatorClicked, button))
+
+        if text == '=':
+            self._connectButtonClicked(button, self._makeSlot(self._eq))
+
 
     @Slot()
     def _makeSlot(self, func, *args, **kwargs):
@@ -108,3 +113,25 @@ class ButtonsGrid(QGridLayout):
             
         self._operator = buttonText
         self.equation = f'{self._left} {self._operator} ??'
+
+    def _eq(self):
+        displayText = self.display.text()
+        if not isValidNumber(displayText):
+            return
+        
+        self._right = float(displayText)
+        self.equation = f'{self._left} {self._operator} {self._right}'
+        result = 0.0
+        
+        try:
+            if '^' in self._equation:
+                result = pow(self._left, self._right)
+        
+        except ZeroDivisionError:
+            self.equation = 'Zero division error'
+            return
+
+        self.display.clear()
+        self.info.setText(f'{self.equation} = {result}')
+        self._left = result
+        self._right = None
