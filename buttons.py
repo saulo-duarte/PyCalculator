@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QPushButton, QGridLayout
+from info import Info
+from PySide6.QtCore import Slot
 from variables import MEDIUM_FONT_SIZE
-from utils import is_number_or_dot, is_empty
+from utils import is_number_or_dot, is_empty, isValidNumber
 from display import Display
 
 class Button(QPushButton):
@@ -8,45 +10,95 @@ class Button(QPushButton):
         super().__init__(*args, **kwargs)
         self.configStyle()
 
-
     def configStyle(self):
         font = self.font()
-        font.setPointSize(MEDIUM_FONT_SIZE)
-        font.setFamily('Segoe UI')
-        font.setBold(True)
+        font.setPixelSize(MEDIUM_FONT_SIZE)
         self.setFont(font)
         self.setMinimumSize(75, 75)
 
 class ButtonsGrid(QGridLayout):
-    def   __init__ (self, display: Display, *args, **kwargs):
+    def __init__(self, display: 'Display', info: 'Info', *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.display = display
-        self._gridMasks = [
+        self._gridMask = [
             ['C', '<', '^', '/'],
             ['7', '8', '9', '*'],
             ['4', '5', '6', '-'],
             ['1', '2', '3', '+'],
             ['', '0', '.', '=']
         ]
+        self.info = info
+        self.display = display
+        self.equation = ''
+        self._left = None
+        self._right = None
+        self._operator = None
+        self._makeGrid()
 
-        for rowNumber, rowData in enumerate(self._gridMasks):
-                for colNumber, buttonText in enumerate(rowData):
-                    button = Button(buttonText)
+    @property
+    def equation(self):
+        return self._equation
+        
+    @equation.setter
+    def equation(self, value):
+        self._equation = value
+        self.info.setText(value)
 
-                    if not is_number_or_dot(buttonText) and not is_empty(buttonText):
-                        button.setProperty('cssClass', 'specialButton')
+    def _makeGrid(self):
+        for rowNumber, rowData in enumerate(self._gridMask):
+            for colNumber, buttonText in enumerate(rowData):
+                button = Button(buttonText)
+                
+                if not is_number_or_dot(buttonText) and not is_empty(buttonText):
+                    button.setProperty('cssClass', 'specialButton')
+                    self._configSpecialButton(button)
+                
+                self.addWidget(button, rowNumber, colNumber)
+                slot = self._makeSlot(self._insertButtonTextToDisplay, button)
+                self._connectButtonClicked(button, slot)
 
-                    self.addWidget(button, rowNumber, colNumber)
-                    buttonSlot = self._makeButtonDisplaySlot(
-                        self._insertButtonTextToDisplay, button
-                        )
-                    button.clicked.connect(buttonSlot)
+    def _connectButtonClicked(self, button, slot):
+        button.clicked.connect(slot)
+        
+    def _configSpecialButton(self, button):
+        text = button.text()
 
-    def _makeButtonDisplaySlot(self, func, *args, **kwargs):
-        def realSlot(checked):
-            func(checked, *args, **kwargs)
-        return realSlot        
+        if text == 'C':
+            self._connectButtonClicked(button, self._clearDisplay)
 
-    def _insertButtonTextToDisplay(self, checked, button):
-        self.display.insert(button.text())
+        if text in ['+', '-', '*', '/']:
+            self._connectButtonClicked(button, self._makeSlot(self._operatorClicked, button))
+
+    @Slot()
+    def _makeSlot(self, func, *args, **kwargs):
+        @Slot(bool)
+        def realSlot(_):
+            func(*args, **kwargs)
+        return realSlot  
+
+    @Slot()
+    def _insertButtonTextToDisplay(self, button):
+        buttonText = button.text()
+        newDisplayValue = self.display.text() + buttonText
+        if not isValidNumber(newDisplayValue):
+            return
+
+        self.display.insert(buttonText)
+    
+    @Slot()
+    def _clearDisplay(self):
+        self.display.clear()
+
+    def _operatorClicked(self, button):
+        buttonText = button.text()
+        displayText = self.display.text()
+        self.display.clear()
+
+        if not isValidNumber(displayText) or displayText is None:
+            return
+        
+        if self._left is None:
+            self._left = displayText
+            self._operator = buttonText
+            self.equation = f'{self._left} {self._operator}'
+            return

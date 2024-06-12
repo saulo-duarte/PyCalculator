@@ -7,3 +7,10 @@ def is_number_or_dot(s):
 
 def is_empty(s):
     return len(s) == 0
+
+def isValidNumber(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
