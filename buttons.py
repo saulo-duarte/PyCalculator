@@ -29,7 +29,9 @@ class ButtonsGrid(QGridLayout):
         ]
         self.info = info
         self.display = display
-        self.equation = ''
+        self._equation = ''
+        self._equationInitialValue = 'Digite sua conta'
+        self._equation = self._equationInitialValue
         self._left = None
         self._right = None
         self._operator = None
@@ -87,6 +89,10 @@ class ButtonsGrid(QGridLayout):
     
     @Slot()
     def _clearDisplay(self):
+        self._left = None
+        self._right = None
+        self._operator = None
+        self.equation = self._equationInitialValue
         self.display.clear()
 
     def _operatorClicked(self, button):
@@ -94,11 +100,11 @@ class ButtonsGrid(QGridLayout):
         displayText = self.display.text()
         self.display.clear()
 
-        if not isValidNumber(displayText) or displayText is None:
+        if not isValidNumber(displayText) and displayText is None:
             return
         
         if self._left is None:
-            self._left = displayText
-            self._operator = buttonText
-            self.equation = f'{self._left} {self._operator}'
-            return
+            self._left = float(displayText)
+            
+        self._operator = buttonText
+        self.equation = f'{self._left} {self._operator} ??'
